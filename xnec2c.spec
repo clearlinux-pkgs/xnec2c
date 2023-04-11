@@ -5,7 +5,7 @@
 #
 Name     : xnec2c
 Version  : 4.4.12
-Release  : 1
+Release  : 2
 URL      : https://www.xnec2c.org/releases/xnec2c-v4.4.12.tar.gz
 Source0  : https://www.xnec2c.org/releases/xnec2c-v4.4.12.tar.gz
 Summary  : A multi-threaded EM tool to model antenna near- and far-field radiation patterns.
@@ -13,11 +13,13 @@ Group    : Development/Tools
 License  : GPL-2.0+ GPL-3.0
 Requires: xnec2c-bin = %{version}-%{release}
 Requires: xnec2c-data = %{version}-%{release}
+Requires: xnec2c-filemap = %{version}-%{release}
 Requires: xnec2c-license = %{version}-%{release}
 Requires: xnec2c-man = %{version}-%{release}
 BuildRequires : gettext
 BuildRequires : perl(XML::Parser)
 BuildRequires : pkgconfig(gtk+-3.0)
+BuildRequires : pkgconfig(openblas)
 # Suppress stripping binaries
 %define __strip /bin/true
 %define debug_package %{nil}
@@ -43,6 +45,7 @@ Summary: bin components for the xnec2c package.
 Group: Binaries
 Requires: xnec2c-data = %{version}-%{release}
 Requires: xnec2c-license = %{version}-%{release}
+Requires: xnec2c-filemap = %{version}-%{release}
 
 %description bin
 bin components for the xnec2c package.
@@ -65,6 +68,14 @@ Requires: xnec2c-man = %{version}-%{release}
 doc components for the xnec2c package.
 
 
+%package filemap
+Summary: filemap components for the xnec2c package.
+Group: Default
+
+%description filemap
+filemap components for the xnec2c package.
+
+
 %package license
 Summary: license components for the xnec2c package.
 Group: Default
@@ -84,13 +95,19 @@ man components for the xnec2c package.
 %prep
 %setup -q -n xnec2c-v4.4.12
 cd %{_builddir}/xnec2c-v4.4.12
+pushd ..
+cp -a xnec2c-v4.4.12 buildavx2
+popd
+pushd ..
+cp -a xnec2c-v4.4.12 buildavx512
+popd
 
 %build
 export http_proxy=http://127.0.0.1:9/
 export https_proxy=http://127.0.0.1:9/
 export no_proxy=localhost,127.0.0.1,0.0.0.0
 export LANG=C.UTF-8
-export SOURCE_DATE_EPOCH=1681242513
+export SOURCE_DATE_EPOCH=1681244364
 export GCC_IGNORE_WERROR=1
 export AR=gcc-ar
 export RANLIB=gcc-ranlib
@@ -101,6 +118,26 @@ export FFLAGS="$FFLAGS -O3 -fdebug-types-section -femit-struct-debug-baseonly -f
 export CXXFLAGS="$CXXFLAGS -O3 -fdebug-types-section -femit-struct-debug-baseonly -ffat-lto-objects -flto=auto -g1 -gno-column-info -gno-variable-location-views -gz "
 %reconfigure --disable-static
 make  %{?_smp_mflags}
+unset PKG_CONFIG_PATH
+pushd ../buildavx2/
+export CFLAGS="$CFLAGS -m64 -march=x86-64-v3 -Wl,-z,x86-64-v3"
+export CXXFLAGS="$CXXFLAGS -m64 -march=x86-64-v3 -Wl,-z,x86-64-v3"
+export FFLAGS="$FFLAGS -m64 -march=x86-64-v3 -Wl,-z,x86-64-v3"
+export FCFLAGS="$FCFLAGS -m64 -march=x86-64-v3"
+export LDFLAGS="$LDFLAGS -m64 -march=x86-64-v3"
+%reconfigure --disable-static
+make  %{?_smp_mflags}
+popd
+unset PKG_CONFIG_PATH
+pushd ../buildavx512/
+export CFLAGS="$CFLAGS -m64 -march=x86-64-v4 -mprefer-vector-width=512 -Wl,-z,x86-64-v4 "
+export CXXFLAGS="$CXXFLAGS -m64 -march=x86-64-v4 -mprefer-vector-width=512 -Wl,-z,x86-64-v4 "
+export FFLAGS="$FFLAGS -m64 -march=x86-64-v4 -mprefer-vector-width=512 -Wl,-z,x86-64-v4"
+export FCFLAGS="$FCFLAGS -m64 -march=x86-64-v4 -mprefer-vector-width=256"
+export LDFLAGS="$LDFLAGS -m64 -march=x86-64-v4"
+%reconfigure --disable-static
+make  %{?_smp_mflags}
+popd
 
 %check
 export LANG=C.UTF-8
@@ -108,13 +145,25 @@ export http_proxy=http://127.0.0.1:9/
 export https_proxy=http://127.0.0.1:9/
 export no_proxy=localhost,127.0.0.1,0.0.0.0
 make %{?_smp_mflags} check
+cd ../buildavx2;
+make %{?_smp_mflags} check || :
+cd ../buildavx512;
+make %{?_smp_mflags} check || :
 
 %install
-export SOURCE_DATE_EPOCH=1681242513
+export SOURCE_DATE_EPOCH=1681244364
 rm -rf %{buildroot}
 mkdir -p %{buildroot}/usr/share/package-licenses/xnec2c
 cp %{_builddir}/xnec2c-v%{version}/COPYING %{buildroot}/usr/share/package-licenses/xnec2c/8624bcdae55baeef00cd11d5dfcfa60f68710a02 || :
+pushd ../buildavx2/
+%make_install_v3
+popd
+pushd ../buildavx512/
+%make_install_v4
+popd
 %make_install
+/usr/bin/elf-move.py avx2 %{buildroot}-v3 %{buildroot} %{buildroot}/usr/share/clear/filemap/filemap-%{name}
+/usr/bin/elf-move.py avx512 %{buildroot}-v4 %{buildroot} %{buildroot}/usr/share/clear/filemap/filemap-%{name}
 
 %files
 %defattr(-,root,root,-)
@@ -122,6 +171,7 @@ cp %{_builddir}/xnec2c-v%{version}/COPYING %{buildroot}/usr/share/package-licens
 %files bin
 %defattr(-,root,root,-)
 /usr/bin/xnec2c
+/usr/share/clear/optimized-elf/bin*
 
 %files data
 %defattr(-,root,root,-)
@@ -286,6 +336,10 @@ cp %{_builddir}/xnec2c-v%{version}/COPYING %{buildroot}/usr/share/package-licens
 %files doc
 %defattr(0644,root,root,0755)
 %doc /usr/share/doc/xnec2c/*
+
+%files filemap
+%defattr(-,root,root,-)
+/usr/share/clear/filemap/filemap-xnec2c
 
 %files license
 %defattr(0644,root,root,0755)
