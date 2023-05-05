@@ -5,7 +5,7 @@
 #
 Name     : xnec2c
 Version  : 4.4.12
-Release  : 2
+Release  : 3
 URL      : https://www.xnec2c.org/releases/xnec2c-v4.4.12.tar.gz
 Source0  : https://www.xnec2c.org/releases/xnec2c-v4.4.12.tar.gz
 Summary  : A multi-threaded EM tool to model antenna near- and far-field radiation patterns.
@@ -13,7 +13,6 @@ Group    : Development/Tools
 License  : GPL-2.0+ GPL-3.0
 Requires: xnec2c-bin = %{version}-%{release}
 Requires: xnec2c-data = %{version}-%{release}
-Requires: xnec2c-filemap = %{version}-%{release}
 Requires: xnec2c-license = %{version}-%{release}
 Requires: xnec2c-man = %{version}-%{release}
 BuildRequires : gettext
@@ -45,7 +44,6 @@ Summary: bin components for the xnec2c package.
 Group: Binaries
 Requires: xnec2c-data = %{version}-%{release}
 Requires: xnec2c-license = %{version}-%{release}
-Requires: xnec2c-filemap = %{version}-%{release}
 
 %description bin
 bin components for the xnec2c package.
@@ -66,14 +64,6 @@ Requires: xnec2c-man = %{version}-%{release}
 
 %description doc
 doc components for the xnec2c package.
-
-
-%package filemap
-Summary: filemap components for the xnec2c package.
-Group: Default
-
-%description filemap
-filemap components for the xnec2c package.
 
 
 %package license
@@ -107,15 +97,15 @@ export http_proxy=http://127.0.0.1:9/
 export https_proxy=http://127.0.0.1:9/
 export no_proxy=localhost,127.0.0.1,0.0.0.0
 export LANG=C.UTF-8
-export SOURCE_DATE_EPOCH=1681244364
+export SOURCE_DATE_EPOCH=1683312048
 export GCC_IGNORE_WERROR=1
 export AR=gcc-ar
 export RANLIB=gcc-ranlib
 export NM=gcc-nm
-export CFLAGS="$CFLAGS -O3 -fdebug-types-section -femit-struct-debug-baseonly -ffat-lto-objects -flto=auto -g1 -gno-column-info -gno-variable-location-views -gz "
-export FCFLAGS="$FFLAGS -O3 -fdebug-types-section -femit-struct-debug-baseonly -ffat-lto-objects -flto=auto -g1 -gno-column-info -gno-variable-location-views -gz "
-export FFLAGS="$FFLAGS -O3 -fdebug-types-section -femit-struct-debug-baseonly -ffat-lto-objects -flto=auto -g1 -gno-column-info -gno-variable-location-views -gz "
-export CXXFLAGS="$CXXFLAGS -O3 -fdebug-types-section -femit-struct-debug-baseonly -ffat-lto-objects -flto=auto -g1 -gno-column-info -gno-variable-location-views -gz "
+export CFLAGS="$CFLAGS -O3 -fdebug-types-section -femit-struct-debug-baseonly -ffat-lto-objects -flto=auto -g1 -gno-column-info -gno-variable-location-views -gz=zstd "
+export FCFLAGS="$FFLAGS -O3 -fdebug-types-section -femit-struct-debug-baseonly -ffat-lto-objects -flto=auto -g1 -gno-column-info -gno-variable-location-views -gz=zstd "
+export FFLAGS="$FFLAGS -O3 -fdebug-types-section -femit-struct-debug-baseonly -ffat-lto-objects -flto=auto -g1 -gno-column-info -gno-variable-location-views -gz=zstd "
+export CXXFLAGS="$CXXFLAGS -O3 -fdebug-types-section -femit-struct-debug-baseonly -ffat-lto-objects -flto=auto -g1 -gno-column-info -gno-variable-location-views -gz=zstd "
 %reconfigure --disable-static
 make  %{?_smp_mflags}
 unset PKG_CONFIG_PATH
@@ -151,7 +141,7 @@ cd ../buildavx512;
 make %{?_smp_mflags} check || :
 
 %install
-export SOURCE_DATE_EPOCH=1681244364
+export SOURCE_DATE_EPOCH=1683312048
 rm -rf %{buildroot}
 mkdir -p %{buildroot}/usr/share/package-licenses/xnec2c
 cp %{_builddir}/xnec2c-v%{version}/COPYING %{buildroot}/usr/share/package-licenses/xnec2c/8624bcdae55baeef00cd11d5dfcfa60f68710a02 || :
@@ -170,8 +160,9 @@ popd
 
 %files bin
 %defattr(-,root,root,-)
+/V3/usr/bin/xnec2c
+/V4/usr/bin/xnec2c
 /usr/bin/xnec2c
-/usr/share/clear/optimized-elf/bin*
 
 %files data
 %defattr(-,root,root,-)
@@ -335,11 +326,7 @@ popd
 
 %files doc
 %defattr(0644,root,root,0755)
-%doc /usr/share/doc/xnec2c/*
-
-%files filemap
-%defattr(-,root,root,-)
-/usr/share/clear/filemap/filemap-xnec2c
+/usr/share/doc/xnec2c/*
 
 %files license
 %defattr(0644,root,root,0755)
