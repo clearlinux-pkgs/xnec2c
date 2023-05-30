@@ -5,7 +5,7 @@
 #
 Name     : xnec2c
 Version  : 4.4.12
-Release  : 3
+Release  : 4
 URL      : https://www.xnec2c.org/releases/xnec2c-v4.4.12.tar.gz
 Source0  : https://www.xnec2c.org/releases/xnec2c-v4.4.12.tar.gz
 Summary  : A multi-threaded EM tool to model antenna near- and far-field radiation patterns.
@@ -97,7 +97,7 @@ export http_proxy=http://127.0.0.1:9/
 export https_proxy=http://127.0.0.1:9/
 export no_proxy=localhost,127.0.0.1,0.0.0.0
 export LANG=C.UTF-8
-export SOURCE_DATE_EPOCH=1683312048
+export SOURCE_DATE_EPOCH=1685479355
 export GCC_IGNORE_WERROR=1
 export AR=gcc-ar
 export RANLIB=gcc-ranlib
@@ -141,7 +141,7 @@ cd ../buildavx512;
 make %{?_smp_mflags} check || :
 
 %install
-export SOURCE_DATE_EPOCH=1683312048
+export SOURCE_DATE_EPOCH=1685479355
 rm -rf %{buildroot}
 mkdir -p %{buildroot}/usr/share/package-licenses/xnec2c
 cp %{_builddir}/xnec2c-v%{version}/COPYING %{buildroot}/usr/share/package-licenses/xnec2c/8624bcdae55baeef00cd11d5dfcfa60f68710a02 || :
